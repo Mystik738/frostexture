@@ -1,6 +1,6 @@
 # frostexture
 
-Provides a Go function to convert Frostpunk .texture files to .dds and .png. Reads all files in a directory with a DXT header, repairs them as .dds files, and optionally converts them to png.
+Provides a Go function to convert Frostpunk texture files to .dds and .png. Reads all files in a directory with a DSS header, repairs them as .dds files, and optionally converts them to png.
 
 ## Caveats
 
