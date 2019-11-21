@@ -12,10 +12,6 @@ import (
 
 //ConvertToDDSandPNG converts the textures-s3 directory to dds and pngs
 func ConvertToDDSandPNG(dir string, overwrite bool, png bool) {
-	if dir[len(dir)-1:] != "/" {
-		dir = dir + "/"
-	}
-
 	ddsBegin, _ := hex.DecodeString(strings.ReplaceAll("44 44 53 20 7C 00 00 00 07 10 00 00", " ", ""))
 	ddsMid, _ := hex.DecodeString(strings.ReplaceAll("00 00 08 0F 00 10 00 00 0A 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 20 00 00 00 04 00 00 00", " ", ""))
 	ddsUncompMid, _ := hex.DecodeString(strings.ReplaceAll("00 00 08 0F 00 10 00 00 0A 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 20 00 00 00 41 00 00 00", " ", ""))
@@ -33,7 +29,7 @@ func ConvertToDDSandPNG(dir string, overwrite bool, png bool) {
 		})
 
 		for _, fileName := range files {
-			file, _ := os.Open(dir + fileName)
+			file, _ := os.Open(filepath.Join(dir, fileName))
 			if file != nil {
 				headerInfo := make([]byte, 16)
 				_, err = file.ReadAt(headerInfo, 0)
@@ -49,7 +45,7 @@ func ConvertToDDSandPNG(dir string, overwrite bool, png bool) {
 					}
 
 					//If there doesn't exist a .dds file with this name or we're overwriting files
-					if _, err := os.Stat(dir + fileName[:extIndex] + ".dds"); overwrite || err != nil {
+					if _, err := os.Stat(filepath.Join(dir, fileName[:extIndex]+".dds")); overwrite || err != nil {
 						width := headerInfo[:4]
 						height := headerInfo[4:8]
 						//TODO: two files don't have the right dimensions, this is a stopgap but it's wrong, prevents a 4 GB file though
@@ -61,7 +57,7 @@ func ConvertToDDSandPNG(dir string, overwrite bool, png bool) {
 						checkError(err)
 						fileSize := fi.Size()
 
-						newFile, err := os.Create(dir + fileName[:extIndex] + ".dds")
+						newFile, err := os.Create(filepath.Join(dir, fileName[:extIndex]+".dds"))
 						checkError(err)
 
 						newFile.Write(ddsBegin)
@@ -88,12 +84,12 @@ func ConvertToDDSandPNG(dir string, overwrite bool, png bool) {
 					}
 
 					if png {
-						if _, err := os.Stat(dir + fileName[:extIndex] + ".png"); overwrite || err != nil {
-							if _, err := os.Stat(dir + fileName[:extIndex] + ".dds"); os.IsNotExist(err) {
+						if _, err := os.Stat(filepath.Join(dir, fileName[:extIndex]+".png")); overwrite || err != nil {
+							if _, err := os.Stat(filepath.Join(dir, fileName[:extIndex]+".dds")); os.IsNotExist(err) {
 								fmt.Println(fileName[:extIndex]+".dds", " doesn't exist, skipping...")
 							} else {
 								//Convert to PNG
-								cmd := exec.Command("magick", "mogrify", "-format", "png", dir+fileName[:extIndex]+".dds")
+								cmd := exec.Command("magick", "mogrify", "-format", "png", filepath.Join(dir, fileName[:extIndex]+".dds"))
 								err = cmd.Run()
 								if err != nil && err.Error() == "exec: \"magick\": executable file not found in $PATH" {
 									fmt.Println("Magick not found, skipping PNG conversion")
